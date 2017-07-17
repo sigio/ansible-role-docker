@@ -1,0 +1,5 @@
+---
+# defaults file for docker
+
+run_docker_registry: false
+run_docker_swarm:    true

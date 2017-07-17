@@ -1,0 +1,45 @@
+---
+# tasks file for docker
+
+- name: Install docker yum repository
+  template: src="{{item.src}}" dest="{{item.dest}}" owner="{{item.owner|default('root')}}" group="{{item.group|default('root')}}" mode="{{item.mode|default('0644')}}"
+  with_items:
+    - { src: "dockerproject.repo.j2", dest: "/etc/yum.repos.d/dockerproject.repo" }
+  tags:
+    - yum
+    - repo
+
+#  enablerepo=rhel-7-server-extras-rpms
+- name: Install docker engine
+  yum: name="{{item}}" state=installed
+  with_items:
+    - docker-engine
+    - docker-engine-selinux
+    - python-docker-py
+
+- name: Allow Docker Swarm traffic in firewall
+  firewalld: port="{{item}}" permanent=true state=enabled immediate=true
+  with_items:
+    - 2377/tcp
+    - 4789/udp
+    - 7946/udp
+    - 7946/tcp
+  when: run_docker_swarm|bool
+
+- name: Enable and start docker service
+  service: state=started enabled=true name="{{item}}"
+  with_items:
+    - docker
+
+- name: Docker pull docker-registry
+  docker_image: name="registry" tag="2.6"
+  when: run_docker_registry|bool
+
+- name: Run docker-registry
+  docker_container:
+    name: registry
+    image: registry
+    published_ports:
+      - "5000:5000"
+    state: started
+  when: run_docker_registry|bool
