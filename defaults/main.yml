@@ -3,3 +3,6 @@
 
 run_docker_registry: false
 run_docker_swarm:    true
+
+# Set to either 'worker' or 'manager' on the host_vars or group_vars
+docker_swarm_role:   "undefined"
