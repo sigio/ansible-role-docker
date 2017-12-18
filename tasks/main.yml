@@ -31,18 +31,26 @@
   firewalld: port="{{item}}" permanent=true state=enabled immediate=true
   with_items:
     - 2377/tcp
+    - 4243/tcp
     - 4789/udp
     - 7946/udp
     - 7946/tcp
   when: run_docker_swarm|bool
 
-- name: Make sure docker is started
-  service:
-    name: "{{item}}"
+- name: Expose docker-api on the network
+  template:
+    src: "docker.service.j2"
+    dest: "/etc/systemd/system/docker.service"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Reload systemd and start docker
+  systemd:
+    daemon_reload: true
+    name: docker
     state: started
     enabled: true
-  with_items:
-    - docker
 
 - name: Check if node is currently in a swarm
   stat: path=/var/lib/docker/swarm/state.json

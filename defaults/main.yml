@@ -4,5 +4,10 @@
 run_docker_registry: false
 run_docker_swarm:    true
 
+# Expose docker-api on a TCP socket ?
+docker_api_network:  false
+docker_api_host:     "0.0.0.0"
+docker_api_port:     "4243"
+
 # Set to either 'worker' or 'manager' on the host_vars or group_vars
 docker_swarm_role:   "undefined"
