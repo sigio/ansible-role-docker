@@ -12,9 +12,10 @@
     - essential
 
 - name: Install docker yum repository
-  template: src="{{item.src}}" dest="{{item.dest}}" owner="{{item.owner|default('root')}}" group="{{item.group|default('root')}}" mode="{{item.mode|default('0644')}}"
+  template: src="{{item.src}}" dest="{{item.dest}}" owner="{{item.owner|default('root')}}" group="{{item.group|default('root')}}" mode="{{item.mode|default('0644')}}" state="{{item.state|default('present')}}"
   with_items:
-    - { src: "dockerproject.repo.j2", dest: "/etc/yum.repos.d/dockerproject.repo" }
+    - { src: "dockerproject.repo.j2", dest: "/etc/yum.repos.d/dockerproject.repo", state: absent }
+    - { src: "docker.repo.j2", dest: "/etc/yum.repos.d/docker.repo" }
   tags:
     - yum
     - repo
@@ -23,8 +24,7 @@
 - name: Install docker engine
   yum: name="{{item}}" state=installed
   with_items:
-    - docker-engine
-    - docker-engine-selinux
+    - docker-ce
     - python-docker-py
 
 - name: Allow Docker Swarm traffic in firewall
