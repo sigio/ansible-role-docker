@@ -12,10 +12,10 @@
     - essential
 
 - name: Install docker yum repository
-  template: src="{{item.src}}" dest="{{item.dest}}" owner="{{item.owner|default('root')}}" group="{{item.group|default('root')}}" mode="{{item.mode|default('0644')}}" state="{{item.state|default('present')}}"
+  template: src="{{item.src}}" dest="{{item.dest}}" owner="{{item.owner|default('root')}}" group="{{item.group|default('root')}}" mode="{{item.mode|default('0644')}}"
   with_items:
-    - { src: "dockerproject.repo.j2", dest: "/etc/yum.repos.d/dockerproject.repo", state: absent }
     - { src: "docker.repo.j2", dest: "/etc/yum.repos.d/docker.repo" }
+    - { src: "docker.service.j2", dest: "/etc/systemd/system/docker.service" }
   tags:
     - yum
     - repo
@@ -31,11 +31,16 @@
   firewalld: port="{{item}}" permanent=true state=enabled immediate=true
   with_items:
     - 2377/tcp
-    - 4243/tcp
     - 4789/udp
     - 7946/udp
     - 7946/tcp
   when: run_docker_swarm|bool
+
+- name: Allow Docker API traffic in firewall
+  firewalld: port="{{item}}" permanent=true state=enabled immediate=true
+  with_items:
+    - "{{docker_api_port}}/tcp"
+  when: docker_api_network|bool
 
 - name: Expose docker-api on the network
   template:
@@ -49,6 +54,10 @@
   systemd:
     daemon_reload: true
     name: docker
+
+- name: Make sure docker is started
+  service:
+    name: "{{item}}"
     state: started
     enabled: true
 
