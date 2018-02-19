@@ -34,6 +34,9 @@
     - 4789/udp
     - 7946/udp
     - 7946/tcp
+    - 80/tcp
+    - 81/tcp
+    - 443/tcp
   when: run_docker_swarm|bool
 
 - name: Allow Docker API traffic in firewall
@@ -55,12 +58,6 @@
     daemon_reload: true
     name: docker
 
-- name: Make sure docker is started
-  service:
-    name: "{{item}}"
-    state: started
-    enabled: true
-
 - name: Check if node is currently in a swarm
   stat: path=/var/lib/docker/swarm/state.json
   register: swarm_json
@@ -76,6 +73,12 @@
 #- name: Debug play_hosts
 #  debug:
 #    var: play_hosts
+
+
+- name: Make sure docker is started
+  service:
+    name: docker
+    state: started
 
 - name: Initialize a docker swarm (when no current swarm is found)
   command: creates=/var/lib/docker/swarm/control.sock docker swarm init
@@ -143,3 +146,9 @@
       - "5000:5000"
     state: started
   when: run_docker_registry|bool
+
+- name: Start docker at boot
+  service:
+    name: docker
+    enabled: true
+
