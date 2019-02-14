@@ -118,6 +118,7 @@
   command: docker swarm join --token {{swarm_manager_token.stdout}} {{hostvars[play_hosts[0]].ansible_eth0.ipv4.address}}:2377
   ignore_errors: yes
   when:
+    - run_docker_swarm|bool
     - docker_swarm_role == 'manager'
     - swarm_json.stat.exists|bool == false
     - not ansible_hostname == play_hosts[0]
@@ -126,13 +127,9 @@
   command: docker swarm join --token {{swarm_worker_token.stdout}} {{hostvars[play_hosts[0]].ansible_eth0.ipv4.address}}:2377
   ignore_errors: yes
   when:
+    - run_docker_swarm|bool
     - docker_swarm_role == 'worker'
     - swarm_json.stat.exists|bool == false
-
-- name: Fail for undefined swarm role
-  fail:
-    msg: "Docker_swarm_role is not manager or worker"
-  when: docker_swarm_role == 'undefined'
 
 - name: Docker pull docker-registry
   docker_image: name="registry" tag="2.6"
